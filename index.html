@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Untilix - Days Until Countdown for iPhone</title>
+  <meta name="description" content="Untilix is a free, offline, ad-free iPhone app for tracking the events that matter to you. No account, no cloud, no tracking.">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --text: #0F172A;
+      --muted: #64748B;
+      --accent: #007AFF;
+      --border: #E2E8F0;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0F172A;
+        --surface: #1E293B;
+        --text: #F8FAFC;
+        --muted: #94A3B8;
+        --accent: #0A84FF;
+        --border: #334155;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0F172A;
+      --surface: #1E293B;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --accent: #0A84FF;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      -webkit-text-size-adjust: 100%;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 48px 20px 64px; }
+    .hero { text-align: center;; margin-bottom: 40px; }
+    .icon {
+      width: 120px; height: 120px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+      border-radius: 27px;
+      display: flex; align-items: center; justify-content: center;
+      color: #FFFFFF;
+      font-size: 56px;
+      font-weight: 700;
+      letter-spacing: -2px;
+      box-shadow: 0 8px 24px rgba(0, 122, 255, 0.25);
+    }
+    @media (prefers-color-scheme: dark) {
+      .icon { background: linear-gradient(135deg, #0A84FF 0%, #5E5CE6 100%); }
+    }
+    h1 { margin: 0 0 12px; font-size: 36px; line-height: 1.1; letter-spacing: -1px; }
+    .tagline { font-size: 19px; color: var(--muted); margin: 0 0 8px; }
+    .small { font-size: 14px; color: var(--muted); }
+    .features { margin: 32px 0; }
+    .feature {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .featureTitle { font-weight: 600; font-size: 17px; margin: 0 0 4px; }
+    .featureText { margin: 0; color: var(--muted); font-size: 15px; }
+    .links { margin-top: 32px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .links a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+    .contact { margin-top: 32px; font-size: 14px; color: var(--muted); }
+    .contact a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="icon" aria-label="Untilix app icon">U</div>
+      <h1>Untilix</h1>
+      <p class="tagline">A private, offline countdown manager for iPhone.</p>
+      <p class="small">Free - No account - No ads - No tracking</p>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <p class="featureTitle">Your data stays on your iPhone</p>
+        <p class="featureText">Every countdown is saved locally. There is no account, no cloud sync, and no server.</p>
+      </div>
+      <div class="feature">
+        <p class="featureTitle">Stay organized</p>
+        <p class="featureText">Categories, search, sort, favorites, and yearly repeats keep your list tidy.</p>
+      </div>
+      <div class="feature">
+        <p class="featureTitle">Local reminders, on your terms</p>
+        <p class="featureText">Optional reminders use iOS local notifications. Permission is requested only when you enable a reminder.</p>
+      </div>
+      <div class="feature">
+        <p class="featureTitle">Designed for every moment</p>
+        <p class="featureText">Light and dark themes, dynamic type, and VoiceOver-friendly labels.</p>
+      </div>
+    </div>
+
+    <div class="links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="support.html">Support</a>
+    </div>
+
+    <p class="contact">
+      Contact: <a href="mailto:untilixapp@gmail.com">untilixapp@gmail.com</a>
+    </p>
+  </div>
+</body>
+</html>
