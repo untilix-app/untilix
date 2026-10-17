@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A countdown for you · Untilix</title>
+  <meta name="description" content="Someone shared a countdown with you. Add it to Untilix in one tap.">
+  <meta property="og:title" content="A countdown was shared with you">
+  <meta property="og:description" content="Tap to see how many days are left, and add it to Untilix in one tap.">
+  <meta property="og:image" content="https://untilix-app.github.io/untilix/e/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="apple-itunes-app" content="app-id=6819263975">
+  <!--
+    Untilix shared countdown page (v1.1). The countdown is in the link after "#",
+    which browsers never send to this server: no data is collected or stored.
+    Format: #k=<channel>&d=<base64url JSON> (see src/core/shareLink.ts).
+  -->
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #F1F5F9;
+      --surface: #FFFFFF;
+      --text: #0F172A;
+      --muted: #475569;
+      --accent: #0F172A;
+      --on-accent: #FFFFFF;
+      --border: #CBD5E1;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0E1626;
+        --surface: #1B2638;
+        --text: #F3F5F9;
+        --muted: #A7B2C6;
+        --accent: #F3F5F9;
+        --on-accent: #0E1626;
+        --border: #2A3650;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      -webkit-text-size-adjust: 100%;
+    }
+    .wrap { max-width: 480px; margin: 0 auto; padding: 24px 16px 48px; }
+    .card {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      color: #FFFFFF;
+      padding: 28px 22px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background: #5856D6;
+    }
+    .emoji { font-size: 44px; line-height: 1; margin-bottom: 8px; }
+    .title { font-size: 26px; font-weight: 800; margin: 0; overflow-wrap: anywhere; }
+    .date { font-size: 15px; opacity: 0.92; margin: 4px 0 0; }
+    .clock { display: flex; justify-content: center; gap: 18px; margin: 22px 0 18px; text-align: center; }
+    .clock b { display: block; font-size: 40px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .clock span { color: var(--muted); font-size: 13px; }
+    .today { text-align: center; font-size: 28px; font-weight: 800; margin: 22px 0 18px; }
+    .btn {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 52px; border-radius: 14px; text-decoration: none;
+      font-weight: 700; font-size: 17px; margin-top: 10px;
+    }
+    .primary { background: var(--accent); color: var(--on-accent); }
+    .secondary { border: 1px solid var(--border); color: var(--text); background: var(--surface); }
+    .note { color: var(--muted); font-size: 13px; text-align: center; margin-top: 14px; }
+    .error { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+    a:focus-visible { outline: 3px solid #0A84FF; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div id="content"></div>
+  </main>
+  <script>
+    (function () {
+      var APP_STORE = 'https://apps.apple.com/app/id6819263975';
+      // App Store Connect › App Analytics › Campaigns › provider token. Empty = campaign links off.
+      var PROVIDER_TOKEN = '';
+      var tr = (navigator.language || 'en').toLowerCase().indexOf('tr') === 0;
+      var L = tr ? {
+        days: 'gün', hours: 'saat', minutes: 'dakika', today: 'Bugün!', passed: 'Bu tarih geçti.',
+        get: "Untilix'i indir · ücretsiz", open: 'Uygulamada aç', sharedBy: 'Bu geri sayım Untilix ile paylaşıldı.',
+        android: 'Untilix şu an iPhone için. Android yakında.', invalid: 'Bu link geçerli bir geri sayım içermiyor.',
+        title: 'Senin için bir geri sayım · Untilix'
+      } : {
+        days: 'days', hours: 'hours', minutes: 'minutes', today: 'Today!', passed: 'This date has passed.',
+        get: 'Get Untilix · free', open: 'Open in the app', sharedBy: 'This countdown was shared with Untilix.',
+        android: 'Untilix is for iPhone right now. Android is coming.', invalid: 'This link does not contain a valid countdown.',
+        title: 'A countdown for you · Untilix'
+      };
+      document.documentElement.lang = tr ? 'tr' : 'en';
+      document.title = L.title;
+
+      function param(name) {
+        var source = (location.hash || '').replace(/^#/, '') + '&' + (location.search || '').replace(/^\?/, '');
+        var m = new RegExp('(?:^|&)' + name + '=([^&]*)').exec(source);
+        return m ? decodeURIComponent(m[1]) : null;
+      }
+      function b64urlToText(s) {
+        s = s.replace(/-/g, '+').replace(/_/g, '/');
+        while (s.length % 4) s += '=';
+        var bin = atob(s);
+        var bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return new TextDecoder('utf-8').decode(bytes);
+      }
+      function el(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text !== undefined) n.textContent = text;
+        return n;
+      }
+
+      var root = document.getElementById('content');
+      var data = param('d');
+      var channel = (param('k') || 'ot').replace(/[^a-z]/g, '').slice(0, 2);
+      var c = null;
+      try {
+        var w = JSON.parse(b64urlToText(data || ''));
+        if (typeof w.t === 'string' && w.t.trim() && /^\d{4}-\d{2}-\d{2}$/.test(w.d)) {
+          c = {
+            title: w.t.trim().slice(0, 80), date: w.d,
+            time: /^([01]\d|2[0-3]):[0-5]\d$/.test(w.h || '') ? w.h : null,
+            yearly: w.y === 1,
+            color: /^#[0-9A-Fa-f]{6}$/.test(w.c || '') ? w.c : '#5856D6',
+            emoji: typeof w.e === 'string' ? Array.from(w.e).slice(0, 4).join('') : ''
+          };
+        }
+      } catch (e) { c = null; }
+
+      var store = APP_STORE + (PROVIDER_TOKEN ? '?pt=' + PROVIDER_TOKEN + '&ct=' + channel + '&mt=8' : '');
+      if (!c) {
+        var box = el('div', 'error');
+        box.appendChild(el('p', '', L.invalid));
+        var get = el('a', 'btn primary', L.get); get.href = store;
+        box.appendChild(get);
+        root.appendChild(box);
+        return;
+      }
+
+      function occurrence(now) {
+        var p = c.date.split('-').map(Number);
+        var hm = c.time ? c.time.split(':').map(Number) : [0, 0];
+        var d = new Date(p[0], p[1] - 1, p[2], hm[0], hm[1]);
+        if (c.yearly) {
+          var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          d.setFullYear(now.getFullYear());
+          if (new Date(d.getFullYear(), d.getMonth(), d.getDate()) < today) d.setFullYear(now.getFullYear() + 1);
+        }
+        return d;
+      }
+
+      var card = el('div', 'card');
+      card.style.background = c.color;
+      if (c.emoji) card.appendChild(el('div', 'emoji', c.emoji));
+      card.appendChild(el('h1', 'title', c.title));
+      var when = occurrence(new Date());
+      card.appendChild(el('p', 'date', when.toLocaleDateString(tr ? 'tr-TR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })));
+      root.appendChild(card);
+
+      var live = el('div');
+      root.appendChild(live);
+      function tick() {
+        var now = new Date();
+        var target = occurrence(now);
+        var start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        var day = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+        var days = Math.round((day - start) / 86400000);
+        live.textContent = '';
+        if (days === 0) { live.appendChild(el('div', 'today', L.today)); return; }
+        if (days < 0) { live.appendChild(el('p', 'note', L.passed)); return; }
+        var ms = Math.max(0, target - now);
+        var clock = el('div', 'clock');
+        [[days, L.days], [Math.floor(ms / 3600000) % 24, L.hours], [Math.floor(ms / 60000) % 60, L.minutes]].forEach(function (x) {
+          var cell = el('div');
+          cell.appendChild(el('b', '', String(x[0])));
+          cell.appendChild(el('span', '', x[1]));
+          clock.appendChild(cell);
+        });
+        live.appendChild(clock);
+      }
+      tick();
+      setInterval(tick, 30000);
+
+      var iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var get = el('a', 'btn primary', L.get); get.href = store; get.rel = 'noopener';
+      root.appendChild(get);
+      if (iOS) {
+        var open = el('a', 'btn secondary', L.open);
+        open.href = 'daysuntil://add?k=' + channel + '&d=' + encodeURIComponent(data);
+        root.appendChild(open);
+      } else {
+        root.appendChild(el('p', 'note', L.android));
+      }
+      root.appendChild(el('p', 'note', L.sharedBy));
+    })();
+  </script>
+</body>
+</html>
